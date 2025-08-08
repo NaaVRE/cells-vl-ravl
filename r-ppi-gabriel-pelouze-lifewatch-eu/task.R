@@ -93,8 +93,8 @@ print(paste("Variable param_param has length", var_len))
 param_param <- gsub("\"", "", opt$param_param)
 id <- gsub('"', '', opt$id)
 
-conf_local_ppi="/tmp/data/ppi"
 conf_local_odim="/tmp/data/odim"
+conf_local_ppi="/tmp/data/ppi"
 
 print("Running the cell")
 library('bioRad')
