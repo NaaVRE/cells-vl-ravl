@@ -1,0 +1,146 @@
+setwd('/app')
+library(optparse)
+library(jsonlite)
+
+if (!requireNamespace("bioRad", quietly = TRUE)) {
+	install.packages("bioRad", repos="http://cran.us.r-project.org")
+}
+library(bioRad)
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+	install.packages("ggplot2", repos="http://cran.us.r-project.org")
+}
+library(ggplot2)
+if (!requireNamespace("tools", quietly = TRUE)) {
+	install.packages("tools", repos="http://cran.us.r-project.org")
+}
+library(tools)
+if (!requireNamespace("rosm", quietly = TRUE)) {
+	install.packages("rosm", repos="http://cran.us.r-project.org")
+}
+library(rosm)
+if (!requireNamespace("stringr", quietly = TRUE)) {
+	install.packages("stringr", repos="http://cran.us.r-project.org")
+}
+library(stringr)
+
+
+
+print('option_list')
+option_list = list(
+
+make_option(c("--local_vp_paths"), action="store", default=NA, type="character", help="my description"),
+make_option(c("--id"), action="store", default=NA, type="character", help="task id")
+)
+
+
+opt = parse_args(OptionParser(option_list=option_list))
+
+var_serialization <- function(var){
+    if (is.null(var)){
+        print("Variable is null")
+        exit(1)
+    }
+    tryCatch(
+        {
+            var <- fromJSON(var)
+            print("Variable deserialized")
+            return(var)
+        },
+        error=function(e) {
+            print("Error while deserializing the variable")
+            print(var)
+            var <- gsub("'", '"', var)
+            var <- fromJSON(var)
+            print("Variable deserialized")
+            return(var)
+        },
+        warning=function(w) {
+            print("Warning while deserializing the variable")
+            var <- gsub("'", '"', var)
+            var <- fromJSON(var)
+            print("Variable deserialized")
+            return(var)
+        }
+    )
+}
+
+print("Retrieving local_vp_paths")
+var = opt$local_vp_paths
+print(var)
+var_len = length(var)
+print(paste("Variable local_vp_paths has length", var_len))
+
+print("------------------------Running var_serialization for local_vp_paths-----------------------")
+print(opt$local_vp_paths)
+local_vp_paths = var_serialization(opt$local_vp_paths)
+print("---------------------------------------------------------------------------------")
+
+id <- gsub('"', '', opt$id)
+
+conf_local_visualization_output="/tmp/data/visualizatons/output"
+
+print("Running the cell")
+library('bioRad')
+library('ggplot2')
+
+print(conf_local_visualization_output)
+
+im_fname_from_vpts <- function(regvpts){
+  date_range = regvpts$daterange
+  radar = regvpts$radar
+  imtype = "regvpts"
+  dr1 <- as.character(date_range[[1]])
+  dr2 <- as.character(date_range[[2]])
+  dr2 <- strsplit(dr2,split=" ")
+  dr2 <- paste0(dr2[[1]],collapse="T")
+  dr_str <- paste0(c(dr1,dr2),collapse="_")
+  fname_noext <- paste0(c(radar,imtype,dr_str),collapse="_")
+  im_fname <- paste0(fname_noext,".png")
+  return (im_fname)
+}
+prefix_from_vpts <- function(vpts){
+  date_prefix <- strftime(vpts$datetime[[1]],format="%Y/%m") 
+  corad <- vpts$radar
+  co <- substring(corad,1,2)
+  rad <- substring(corad,3,5)
+  corad_prefix <- paste0(c(co,rad),collapse="/")
+  corad_prefix <- toupper(corad_prefix)
+  prefix <- paste0(c(corad_prefix,date_prefix),collapse="/")
+  return (prefix)
+}
+
+title_str_from_regvpts <- function(regvpts){
+  date_range = regvpts$daterange
+  radar = regvpts$radar
+  imtype = "regvpts"
+  dr1 <- as.character(date_range[[1]])
+  dr2 <- as.character(date_range[[2]])
+  dr2 <- strsplit(dr2,split=" ")
+  dr2 <- paste0(dr2[[1]],collapse="T")
+  dr_str <- paste0(c(dr1,dr2),collapse="_")
+  title_str <- paste0(c(radar,imtype,dr_str),collapse=" ")
+  return (title_str)
+}
+
+print(local_vp_paths)
+vp_list <- bioRad:::read_vpfiles(local_vp_paths)
+vpts <- bioRad:::bind_into_vpts(vp_list)
+reg_vpts <- bioRad:::regularize_vpts(vpts)
+image_filename = im_fname_from_vpts(reg_vpts)
+local_prefix <- prefix_from_vpts(vpts)
+local_image_dir <- paste(conf_local_visualization_output,local_prefix,collapse="",sep="/")
+dir.create(local_image_dir,showWarnings=F,recursive=T)
+local_image_path <- paste(local_image_dir,image_filename,collapse="",sep="/")
+print(local_image_path)
+title_str <- title_from_pvol(my_pvol) 
+png(local_image_path,width=1024,height=1024,units="px") 
+p <- plot(reg_vpts) 
+title(title_str,line=3)
+print(p)
+dev.off()
+local_vpts_paths <- list(local_image_path)
+# capturing outputs
+print('Serialization of local_vpts_paths')
+file <- file(paste0('/tmp/local_vpts_paths_', id, '.json'))
+writeLines(toJSON(local_vpts_paths, auto_unbox=TRUE), file)
+close(file)
