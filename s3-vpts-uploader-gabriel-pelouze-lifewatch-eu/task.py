@@ -1,0 +1,47 @@
+from minio import Minio
+import pathlib
+
+import argparse
+import json
+import os
+arg_parser = argparse.ArgumentParser()
+
+secret_minio_access_key = os.getenv('secret_minio_access_key')
+secret_minio_secret_key = os.getenv('secret_minio_secret_key')
+
+arg_parser.add_argument('--id', action='store', type=str, required=True, dest='id')
+
+
+arg_parser.add_argument('--local_vpts_paths', action='store', type=str, required=True, dest='local_vpts_paths')
+
+
+args = arg_parser.parse_args()
+print(args)
+
+id = args.id
+
+local_vpts_paths = json.loads(args.local_vpts_paths)
+
+
+conf_minio_endpoint = conf_minio_endpoint = 'scruffy.lab.uvalight.net:9000'
+conf_minio_tutorial_prefix = conf_minio_tutorial_prefix = 'ravl-tutorial'
+conf_minio_user_bucket_name = conf_minio_user_bucket_name = 'naa-vre-user-data'
+
+minioClient = Minio(
+    endpoint=conf_minio_endpoint,
+    access_key=secret_minio_access_key,
+    secret_key=secret_minio_secret_key,
+    secure=True,
+)
+
+for path in local_vpts_paths:
+    print(path)
+    obj_key = pathlib.Path(*pathlib.Path(path).parts[3:])
+    obj_name = f"{conf_minio_tutorial_prefix}/{obj_key}"
+    print(obj_name)
+    minioClient.fput_object(
+        bucket_name=conf_minio_user_bucket_name,
+        object_name=obj_name,
+        file_path=path,
+    )
+
