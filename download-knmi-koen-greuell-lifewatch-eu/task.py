@@ -13,7 +13,7 @@ arg_parser.add_argument('--id', action='store', type=str, required=True, dest='i
 
 arg_parser.add_argument('--dataset_files', action='store', type=str, required=True, dest='dataset_files')
 
-arg_parser.add_argument('--param_radar', action='store', type=str, required=True, dest='param_radar')
+arg_parser.add_argument('--param_01_radar', action='store', type=str, required=True, dest='param_01_radar')
 
 args = arg_parser.parse_args()
 print(args)
@@ -22,7 +22,7 @@ id = args.id
 
 dataset_files = json.loads(args.dataset_files)
 
-param_radar = args.param_radar.replace('"','')
+param_01_radar = args.param_01_radar.replace('"','')
 
 conf_radars = conf_radars = {'hrw': ['radar_volume_full_herwijnen', 1.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_full_herwijnen/versions/1.0/files', 'NL/HRW'], 'herwijnen': ['radar_volume_full_herwijnen', 1.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_full_herwijnen/versions/1.0/files', 'NL/HRW'], 'dhl': ['radar_volume_full_denhelder', 2.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_denhelder/versions/2.0/files', 'NL/DHL'], 'den helder': ['radar_volume_full_denhelder', 2.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_denhelder/versions/2.0/files', 'NL/DHL']}
 conf_local_knmi = conf_local_knmi = '/tmp/data/knmi'
@@ -30,7 +30,7 @@ conf_local_knmi = conf_local_knmi = '/tmp/data/knmi'
 dataset_files
 n_files = len(dataset_files)
 print(f"Starting download of {n_files} files.")
-_, _, api_url, radar_code = conf_radars.get(param_radar.lower())
+_, _, api_url, radar_code = conf_radars.get(param_01_radar.lower())
 knmi_pvol_paths = []
 idx = 1
 for dataset_file in dataset_files:
