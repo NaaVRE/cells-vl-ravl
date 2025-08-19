@@ -13,11 +13,11 @@ arg_parser.add_argument('--id', action='store', type=str, required=True, dest='i
 
 arg_parser.add_argument('--init_complete', action='store', type=str, required=True, dest='init_complete')
 
-arg_parser.add_argument('--param_end_date', action='store', type=str, required=True, dest='param_end_date')
-arg_parser.add_argument('--param_interval_in_minutes', action='store', type=int, required=True, dest='param_interval_in_minutes')
-arg_parser.add_argument('--param_maximum_KNMI_files', action='store', type=int, required=True, dest='param_maximum_KNMI_files')
-arg_parser.add_argument('--param_radar', action='store', type=str, required=True, dest='param_radar')
-arg_parser.add_argument('--param_start_date', action='store', type=str, required=True, dest='param_start_date')
+arg_parser.add_argument('--param_01_radar', action='store', type=str, required=True, dest='param_01_radar')
+arg_parser.add_argument('--param_02_start_date', action='store', type=str, required=True, dest='param_02_start_date')
+arg_parser.add_argument('--param_03_end_date', action='store', type=str, required=True, dest='param_03_end_date')
+arg_parser.add_argument('--param_05_interval_in_minutes', action='store', type=int, required=True, dest='param_05_interval_in_minutes')
+arg_parser.add_argument('--param_11_maximum_KNMI_files', action='store', type=int, required=True, dest='param_11_maximum_KNMI_files')
 
 args = arg_parser.parse_args()
 print(args)
@@ -26,11 +26,11 @@ id = args.id
 
 init_complete = args.init_complete.replace('"','')
 
-param_end_date = args.param_end_date.replace('"','')
-param_interval_in_minutes = args.param_interval_in_minutes
-param_maximum_KNMI_files = args.param_maximum_KNMI_files
-param_radar = args.param_radar.replace('"','')
-param_start_date = args.param_start_date.replace('"','')
+param_01_radar = args.param_01_radar.replace('"','')
+param_02_start_date = args.param_02_start_date.replace('"','')
+param_03_end_date = args.param_03_end_date.replace('"','')
+param_05_interval_in_minutes = args.param_05_interval_in_minutes
+param_11_maximum_KNMI_files = args.param_11_maximum_KNMI_files
 
 conf_radars = conf_radars = {'hrw': ['radar_volume_full_herwijnen', 1.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_full_herwijnen/versions/1.0/files', 'NL/HRW'], 'herwijnen': ['radar_volume_full_herwijnen', 1.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_full_herwijnen/versions/1.0/files', 'NL/HRW'], 'dhl': ['radar_volume_full_denhelder', 2.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_denhelder/versions/2.0/files', 'NL/DHL'], 'den helder': ['radar_volume_full_denhelder', 2.0, 'https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_volume_denhelder/versions/2.0/files', 'NL/DHL']}
 
@@ -53,12 +53,12 @@ def validate_api_errors():
 
 
 def validate_number_of_KNMI_files():
-    if len(dataset_files) > param_maximum_KNMI_files:
+    if len(dataset_files) > param_11_maximum_KNMI_files:
         raise ValueError(
-            f"{len(dataset_files)} KNMI files were found to download, but {param_maximum_KNMI_files=}."
+            f"{len(dataset_files)} KNMI files were found to download, but {param_11_maximum_KNMI_files=}."
             f"\n The data was retrieved with the following parameters:"
-            f"\n {param_start_date=} \n {param_end_date=} \n {param_interval_in_minutes=}"
-            f"\n Increase {param_maximum_KNMI_files=}, decrease the time range, or increase the interval."
+            f"\n {param_02_start_date=} \n {param_03_end_date=} \n {param_05_interval_in_minutes=}"
+            f"\n Increase {param_11_maximum_KNMI_files=}, decrease the time range, or increase the interval."
         )
 
 
@@ -72,9 +72,9 @@ else:
     sys.exit(1)
 
 
-start_ts = param_start_date
-end_ts = param_end_date
-datasetName, datasetVersion, api_url, _ = conf_radars.get(param_radar.lower())
+start_ts = param_02_start_date
+end_ts = param_03_end_date
+datasetName, datasetVersion, api_url, _ = conf_radars.get(param_01_radar.lower())
 params = {
     "datasetName": datasetName,
     "datasetVersion": datasetVersion,
@@ -105,7 +105,7 @@ while True:
         params.update({"nextPageToken": nextPageToken})
 
 filtered_list = []
-interval_list = list(range(0, 60, param_interval_in_minutes))
+interval_list = list(range(0, 60, param_05_interval_in_minutes))
 for dataset_file in dataset_files:
     minute = int(dataset_file[0].split("_")[-1].split(".")[0][-2:])
     if minute in interval_list:
