@@ -21,11 +21,11 @@ arg_parser.add_argument('--id', action='store', type=str, required=True, dest='i
 
 arg_parser.add_argument('--odim_pvol_paths', action='store', type=str, required=True, dest='odim_pvol_paths')
 
-arg_parser.add_argument('--param_clean_pvol_output', action='store', type=str, required=True, dest='param_clean_pvol_output')
-arg_parser.add_argument('--param_clean_vp_output', action='store', type=str, required=True, dest='param_clean_vp_output')
-arg_parser.add_argument('--param_public_minio_data', action='store', type=int, required=True, dest='param_public_minio_data')
-arg_parser.add_argument('--param_upload_results', action='store', type=str, required=True, dest='param_upload_results')
-arg_parser.add_argument('--param_user_number', action='store', type=str, required=True, dest='param_user_number')
+arg_parser.add_argument('--param_06_upload_results', action='store', type=str, required=True, dest='param_06_upload_results')
+arg_parser.add_argument('--param_07_public_minio_data', action='store', type=int, required=True, dest='param_07_public_minio_data')
+arg_parser.add_argument('--param_09_clean_pvol_output', action='store', type=str, required=True, dest='param_09_clean_pvol_output')
+arg_parser.add_argument('--param_10_clean_vp_output', action='store', type=str, required=True, dest='param_10_clean_vp_output')
+arg_parser.add_argument('--param_12_user_number', action='store', type=str, required=True, dest='param_12_user_number')
 
 args = arg_parser.parse_args()
 print(args)
@@ -34,11 +34,11 @@ id = args.id
 
 odim_pvol_paths = json.loads(args.odim_pvol_paths)
 
-param_clean_pvol_output = args.param_clean_pvol_output.replace('"','')
-param_clean_vp_output = args.param_clean_vp_output.replace('"','')
-param_public_minio_data = args.param_public_minio_data
-param_upload_results = args.param_upload_results.replace('"','')
-param_user_number = args.param_user_number.replace('"','')
+param_06_upload_results = args.param_06_upload_results.replace('"','')
+param_07_public_minio_data = args.param_07_public_minio_data
+param_09_clean_pvol_output = args.param_09_clean_pvol_output.replace('"','')
+param_10_clean_vp_output = args.param_10_clean_vp_output.replace('"','')
+param_12_user_number = args.param_12_user_number.replace('"','')
 
 conf_minio_public_root_prefix = conf_minio_public_root_prefix = 'vl-vol2bird'
 conf_minio_tutorial_prefix = conf_minio_tutorial_prefix = 'ravl-tutorial'
@@ -170,7 +170,7 @@ def vol2bird(
 
 
 def get_vp_storage_path(relative_path: str = "") -> str:
-    if param_public_minio_data:
+    if param_07_public_minio_data:
         return (
             pathlib.Path(conf_minio_public_root_prefix)
             .joinpath(conf_minio_tutorial_prefix)
@@ -180,7 +180,7 @@ def get_vp_storage_path(relative_path: str = "") -> str:
     else:
         return (
             pathlib.Path(conf_minio_tutorial_prefix)
-            .joinpath(conf_user_directory + param_user_number)
+            .joinpath(conf_user_directory + param_12_user_number)
             .joinpath(conf_vp_output_prefix)
             .joinpath(relative_path)
         )
@@ -196,14 +196,14 @@ for odim_pvol_path in odim_pvol_paths:
     vertical_profile_paths.append(vp_path)
 print(vertical_profile_paths)
 
-if str2bool(param_clean_pvol_output):
+if str2bool(param_09_clean_pvol_output):
     print("Removing PVOL output from local storage")
     for pvol_path in odim_pvol_paths:
         pathlib.Path(pvol_path).unlink()
         if not any(pathlib.Path(pvol_path).parent.iterdir()):
             pathlib.Path(pvol_path).parent.rmdir()
 
-if str2bool(param_upload_results):
+if str2bool(param_06_upload_results):
 
     minioClient = Minio(
         endpoint=conf_minio_endpoint,
@@ -222,7 +222,7 @@ if str2bool(param_upload_results):
             _ = minioClient.stat_object(
                 bucket=(
                     conf_minio_public_bucket_name
-                    if param_public_minio_data
+                    if param_07_public_minio_data
                     else conf_minio_user_bucket_name
                 ),
                 prefix=remote_vp_path.as_posix(),
@@ -237,7 +237,7 @@ if str2bool(param_upload_results):
                 minioClient.put_object(
                     bucket_name=(
                         conf_minio_public_bucket_name
-                        if param_public_minio_data
+                        if param_07_public_minio_data
                         else conf_minio_user_bucket_name
                     ),
                     object_name=remote_vp_path.as_posix(),
@@ -247,7 +247,7 @@ if str2bool(param_upload_results):
         else:
             print(f"{remote_vp_path} exists, skipping ")
     print("Finished uploading results")
-if str2bool(param_clean_vp_output):
+if str2bool(param_10_clean_vp_output):
     print("Removing VP output from local storage")
     for vp_path in vertical_profile_paths:
         pathlib.Path(vp_path).unlink()
