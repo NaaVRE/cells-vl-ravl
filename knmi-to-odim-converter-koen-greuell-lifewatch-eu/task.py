@@ -20,10 +20,10 @@ arg_parser.add_argument('--id', action='store', type=str, required=True, dest='i
 
 arg_parser.add_argument('--knmi_pvol_paths', action='store', type=str, required=True, dest='knmi_pvol_paths')
 
-arg_parser.add_argument('--param_clean_knmi_input', action='store', type=str, required=True, dest='param_clean_knmi_input')
-arg_parser.add_argument('--param_public_minio_data', action='store', type=int, required=True, dest='param_public_minio_data')
-arg_parser.add_argument('--param_upload_results', action='store', type=str, required=True, dest='param_upload_results')
-arg_parser.add_argument('--param_user_number', action='store', type=str, required=True, dest='param_user_number')
+arg_parser.add_argument('--param_06_upload_results', action='store', type=str, required=True, dest='param_06_upload_results')
+arg_parser.add_argument('--param_07_public_minio_data', action='store', type=int, required=True, dest='param_07_public_minio_data')
+arg_parser.add_argument('--param_08_clean_knmi_input', action='store', type=str, required=True, dest='param_08_clean_knmi_input')
+arg_parser.add_argument('--param_12_user_number', action='store', type=str, required=True, dest='param_12_user_number')
 
 args = arg_parser.parse_args()
 print(args)
@@ -32,10 +32,10 @@ id = args.id
 
 knmi_pvol_paths = json.loads(args.knmi_pvol_paths)
 
-param_clean_knmi_input = args.param_clean_knmi_input.replace('"','')
-param_public_minio_data = args.param_public_minio_data
-param_upload_results = args.param_upload_results.replace('"','')
-param_user_number = args.param_user_number.replace('"','')
+param_06_upload_results = args.param_06_upload_results.replace('"','')
+param_07_public_minio_data = args.param_07_public_minio_data
+param_08_clean_knmi_input = args.param_08_clean_knmi_input.replace('"','')
+param_12_user_number = args.param_12_user_number.replace('"','')
 
 conf_minio_public_root_prefix = conf_minio_public_root_prefix = 'vl-vol2bird'
 conf_minio_tutorial_prefix = conf_minio_tutorial_prefix = 'ravl-tutorial'
@@ -180,7 +180,7 @@ def knmi_to_odim(in_fpath, out_fpath):
 
 
 def get_pvol_storage_path(relative_path: str = "") -> str:
-    if param_public_minio_data:
+    if param_07_public_minio_data:
         return (
             pathlib.Path(conf_minio_public_root_prefix)
             .joinpath(conf_minio_tutorial_prefix)
@@ -190,7 +190,7 @@ def get_pvol_storage_path(relative_path: str = "") -> str:
     else:
         return (
             pathlib.Path(conf_minio_tutorial_prefix)
-            .joinpath(conf_user_directory + param_user_number)
+            .joinpath(conf_user_directory + param_12_user_number)
             .joinpath(conf_pvol_output_prefix)
             .joinpath(relative_path)
         )
@@ -209,7 +209,7 @@ for knmi_path in knmi_pvol_paths:
         in_fpath=str(knmi_path), out_fpath=str(out_path_pvol_odim)
     )
     print(f"{converter_results=}")
-    if param_clean_knmi_input:
+    if param_08_clean_knmi_input:
         pathlib.Path(knmi_path).unlink()
         if not any(pathlib.Path(knmi_path).parent.iterdir()):
             pathlib.Path(knmi_path).parent.rmdir()
@@ -221,7 +221,7 @@ for knmi_path in knmi_pvol_paths:
     odim_pvol_paths.append(out_path_pvol_odim_tce)
 
 print(f"{odim_pvol_paths=}")
-if str2bool(param_upload_results):
+if str2bool(param_06_upload_results):
 
     minioClient = Minio(
         endpoint=conf_minio_endpoint,
@@ -240,7 +240,7 @@ if str2bool(param_upload_results):
             _ = minioClient.stat_object(
                 bucket=(
                     conf_minio_public_bucket_name
-                    if param_public_minio_data
+                    if param_07_public_minio_data
                     else conf_minio_user_bucket_name
                 ),
                 prefix=remote_odim_pvol_path.as_posix(),
@@ -255,7 +255,7 @@ if str2bool(param_upload_results):
                 minioClient.put_object(
                     bucket_name=(
                         conf_minio_public_bucket_name
-                        if param_public_minio_data
+                        if param_07_public_minio_data
                         else conf_minio_user_bucket_name
                     ),
                     object_name=remote_odim_pvol_path.as_posix(),
