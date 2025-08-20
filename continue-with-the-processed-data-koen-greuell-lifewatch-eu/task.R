@@ -59,4 +59,5 @@ id <- gsub('"', '', opt$id)
 
 
 print("Running the cell")
+print("This is processed_data:")
 print(processed_data)
