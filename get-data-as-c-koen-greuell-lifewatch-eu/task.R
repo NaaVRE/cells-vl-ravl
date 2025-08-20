@@ -47,11 +47,11 @@ id <- gsub('"', '', opt$id)
 
 
 print("Running the cell")
-data_to_process <- c("raw_data1", "raw_data2")
+data_in_c_to_process <- c("raw_data1", "raw_data2")
 print("This is data_to_process:")
-print(data_to_process)
+print(data_in_c_to_process)
 # capturing outputs
-print('Serialization of data_to_process')
-file <- file(paste0('/tmp/data_to_process_', id, '.json'))
-writeLines(toJSON(data_to_process, auto_unbox=TRUE), file)
+print('Serialization of data_in_c_to_process')
+file <- file(paste0('/tmp/data_in_c_to_process_', id, '.json'))
+writeLines(toJSON(data_in_c_to_process, auto_unbox=TRUE), file)
 close(file)
